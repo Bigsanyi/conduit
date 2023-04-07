@@ -1,3 +1,8 @@
+'''Sziasztok, a GIT-en való futáskor az Allure-ban ezt találom hibaként:
+"selenium.common.exceptions.WebDriverException: Message: unknown error: Chrome failed to start: exited abnormally.
+  (unknown error: DevToolsActivePort file doesn't exist)
+  (The process started from chrome location /usr/bin/google-chrome is no longer running, so ChromeDriver is assuming that Chrome has crashed.)"
+'''
 from time import sleep
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -9,6 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime, date, time, timezone
+
 
 class TestConduit(object):
 
@@ -23,11 +29,16 @@ class TestConduit(object):
         self.unique = datetime.now().strftime("%Y%m%d%H%M%S")
 
     def teardown_method(self):
-        self.browser.quit()
+        pass
+#        self.browser.quit()
 
-    def test_all(self):
-        self.t_registry()
-        self.t_login()
+
+    def test_statement(self):
+        decline = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__buttons__button--decline')))
+        decline.click()
+        sleep(1)
+        assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
 
     def t_registry(self):
         sign_up = WebDriverWait(self.browser, 5).until(
@@ -49,11 +60,12 @@ class TestConduit(object):
 
         ok_btn = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'swal-button--confirm')))
-
         assert self.browser.find_element(By.CLASS_NAME, 'swal-button--confirm').text == "OK"
         ok_btn.click()
 
-    def t_login(self):
+    # weboldal menyitása és bejelentkezés, korábban regisztrált felhasználóval
+    def test_login(self):
+        self.t_registry()
         sign_in = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/login"]')
         assert self.browser.title == 'Conduit'
         assert self.browser.current_url == 'http://localhost:1667/#/'
@@ -70,16 +82,37 @@ class TestConduit(object):
         password.send_keys('Abcd1234')
         sign_in_button.click()
 
-    # weboldal menyitása és bejelentkezés, korábban regisztrált felhasználóval
-    '''def page_open(self):
 
-    def test_stuff(self):
-        self.page_open()
-        sign_in = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/login"]')
-        sign_up = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/register"]')
-        assert self.browser.title == 'Conduit'
-        assert self.browser.current_url == 'http://localhost:1667/#/'
-        assert 'http://localhost:1667/#/' in self.browser.current_url
-
-
+'''
+TC1
+adatkezelési
+nyilatkozat
+használata
+adatok
+listázása
+több
+oldalas
+lista
+bejárása
+TC3
+új
+adat
+bevitele
+ismételt
+és
+sorozatos
+adatbevitel
+adatforrásból
+TC4
+meglévő
+adat
+módosítása
+adat
+vagy
+adatok
+törlése
+adatok
+lementése
+felületről
+kijelentkezés
 '''
