@@ -19,32 +19,40 @@ from datetime import datetime, date, time, timezone
 class TestConduit(object):
 
     def setup_method(self):
-        s = Service(executable_path=ChromeDriverManager().install())
-        o = Options()
-        o.add_experimental_option("detach", True)
-        self.browser = webdriver.Chrome(service=s, options=o)
+        service = Service(executable_path=ChromeDriverManager().install())
+        options = Options()
+        options.add_experimental_option("detach", True)
+
+        '''options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')'''
+
+        self.browser = webdriver.Chrome(service=service, options=options)
         URL = 'http://localhost:1667/'
         self.browser.get(URL)
         self.browser.maximize_window()
         self.unique = datetime.now().strftime("%Y%m%d%H%M%S")
 
+
+    # wait = WebDriverWait(self.browser, 10).until(self.browser.title == 'Conduit')
     def teardown_method(self):
-        pass
-#        self.browser.quit()
+        self.browser.quit()
 
 
     def test_statement(self):
         decline = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__buttons__button--decline')))
         decline.click()
+        assert self.browser.current_url == 'http://localhost:1667/#/'
         sleep(1)
         assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
 
-    def t_registry(self):
+
+    def test_registry(self):
         sign_up = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/register"]')))
         assert self.browser.title == 'Conduit'
-        assert self.browser.current_url == 'http://localhost:1667/#/'
+
         assert 'http://localhost:1667/#/' in self.browser.current_url
         sign_up.click()
         username = WebDriverWait(self.browser, 5).until(
@@ -53,8 +61,8 @@ class TestConduit(object):
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
         sign_up_btn = self.browser.find_element(By.CSS_SELECTOR, 'button')
 
-        username.send_keys(f'Teszt{self.unique}')
-        email.send_keys(f'{self.unique}@szerver.hu')
+        username.send_keys(f"aaa{self.unique}")
+        email.send_keys(f"aateszt@{self.unique}.hu")
         password.send_keys('Abcd1234')
         sign_up_btn.click()
 
@@ -63,13 +71,13 @@ class TestConduit(object):
         assert self.browser.find_element(By.CLASS_NAME, 'swal-button--confirm').text == "OK"
         ok_btn.click()
 
+
     # weboldal menyitása és bejelentkezés, korábban regisztrált felhasználóval
     def test_login(self):
-        self.t_registry()
         sign_in = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/login"]')
         assert self.browser.title == 'Conduit'
-        assert self.browser.current_url == 'http://localhost:1667/#/'
         assert 'http://localhost:1667/#/' in self.browser.current_url
+
         sign_in.click()
         sign_in_button = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'button')))
@@ -78,9 +86,29 @@ class TestConduit(object):
         email = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Email"]')
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
 
-        email.send_keys(f'{self.unique}@szerver.hu')
+        email.send_keys("teszt@vizsga.hu")
         password.send_keys('Abcd1234')
         sign_in_button.click()
+
+
+    def test_newpost(self):
+        new_article = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/editor"]')
+        article_title = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'form-control-lg')))
+        about = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="What\'s this article about?"]')
+        write = self.browser.find_element(By.CSS_SELECTOR, 'textarea[placeholder="Write your article (in markdown)"]')
+        tag = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Enter tags"]')
+        publish = self.browser.find_element(By.CLASS_NAME, 'btn-primary')
+        sleep(3)
+        article_title.send_keys("article" + self.unique)
+        about.send_keys("about" + self.unique)
+        write.send_keys("write" + self.unique)
+        tag.send_keys("tag" + self.unique)
+        assert article_title.text == ("article" + self.unique)
+        assert about.text == ("about" + self.unique)
+        assert write.text == ("write" + self.unique)
+        assert tag.text == ("tag" + self.unique)
+        publish.click()
 
 
 '''
