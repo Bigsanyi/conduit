@@ -33,11 +33,9 @@ class TestConduit(object):
         self.browser.maximize_window()
         self.unique = datetime.now().strftime("%Y%m%d%H%M%S")
 
-
     # wait = WebDriverWait(self.browser, 10).until(self.browser.title == 'Conduit')
     def teardown_method(self):
         self.browser.quit()
-
 
     def test_statement(self):
         decline = WebDriverWait(self.browser, 5).until(
@@ -46,7 +44,7 @@ class TestConduit(object):
         assert self.browser.current_url == 'http://localhost:1667/#/'
         sleep(1)
         assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
-
+        sleep(2)
 
     def test_registry(self):
         sign_up = WebDriverWait(self.browser, 5).until(
@@ -61,8 +59,13 @@ class TestConduit(object):
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
         sign_up_btn = self.browser.find_element(By.CSS_SELECTOR, 'button')
 
-        username.send_keys(f"aaa{self.unique}")
+        '''username.send_keys(f"TesztUser{self.unique}")
         email.send_keys(f"aateszt@{self.unique}.hu")
+        password.send_keys('Abcd1234')
+        sign_up_btn.click()'''
+
+        username.send_keys("TesztUser")
+        email.send_keys("teszt@vizsga.hu")
         password.send_keys('Abcd1234')
         sign_up_btn.click()
 
@@ -71,12 +74,10 @@ class TestConduit(object):
         assert self.browser.find_element(By.CLASS_NAME, 'swal-button--confirm').text == "OK"
         ok_btn.click()
 
-
     # weboldal menyitása és bejelentkezés, korábban regisztrált felhasználóval
     def test_login(self):
         sign_in = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/login"]')
         assert self.browser.title == 'Conduit'
-        assert 'http://localhost:1667/#/' in self.browser.current_url
 
         sign_in.click()
         sign_in_button = WebDriverWait(self.browser, 5).until(
@@ -89,58 +90,76 @@ class TestConduit(object):
         email.send_keys("teszt@vizsga.hu")
         password.send_keys('Abcd1234')
         sign_in_button.click()
+        sleep(2)
+        assert self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/@TesztUser/"]').text == "TesztUser"
 
+    # ezt át kell írni
 
     def test_newpost(self):
+        self.test_login()
+
         new_article = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/editor"]')
+        new_article.click()
         article_title = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'form-control-lg')))
         about = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="What\'s this article about?"]')
         write = self.browser.find_element(By.CSS_SELECTOR, 'textarea[placeholder="Write your article (in markdown)"]')
         tag = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Enter tags"]')
         publish = self.browser.find_element(By.CLASS_NAME, 'btn-primary')
-        sleep(3)
-        article_title.send_keys("article" + self.unique)
-        about.send_keys("about" + self.unique)
-        write.send_keys("write" + self.unique)
-        tag.send_keys("tag" + self.unique)
-        assert article_title.text == ("article" + self.unique)
-        assert about.text == ("about" + self.unique)
-        assert write.text == ("write" + self.unique)
-        assert tag.text == ("tag" + self.unique)
+        article_title.send_keys(f'article{self.unique}')
+        about.send_keys(f'about{self.unique}')
+        write.send_keys(f'write{self.unique}')
+        tag.send_keys(f'tag{self.unique}')
+        sleep(2)
+        assert article_title.get_attribute("value") == f'article{self.unique}'
+        assert about.get_attribute("value") == f'about{self.unique}'
+        assert write.get_attribute("value") == f'write{self.unique}'
+        assert tag.get_attribute("value") == f'tag{self.unique}'
         publish.click()
+        published = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'h1'))).text
+        assert self.browser.find_element(By.CSS_SELECTOR, 'h1').text == f'article{self.unique}'
+        sleep(2)
+        home = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/"]')
+        home.click()
+        sleep(1)
+        tag_published = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, f'a[href="#/tag/tag{self.unique}"]')))
+        assert tag_published.is_displayed()
 
-
-'''
-TC1
-adatkezelési
-nyilatkozat
-használata
-adatok
-listázása
-több
-oldalas
-lista
-bejárása
-TC3
-új
-adat
-bevitele
-ismételt
-és
-sorozatos
-adatbevitel
-adatforrásból
-TC4
-meglévő
-adat
-módosítása
-adat
-vagy
-adatok
-törlése
-adatok
-lementése
-felületről
-kijelentkezés
-'''
+        '''
+                with open("deltee.txt", "w", encoding='utf-8') as file:
+            file.write(str(tag_published))
+        sleep(.5)
+        TC1
+        adatkezelési
+        nyilatkozat
+        használata
+        adatok
+        listázása
+        több
+        oldalas
+        lista
+        bejárása
+        TC3
+        új
+        adat
+        bevitele
+        ismételt
+        és
+        sorozatos
+        adatbevitel
+        adatforrásból
+        TC4
+        meglévő
+        adat
+        módosítása
+        adat
+        vagy
+        adatok
+        törlése
+        adatok
+        lementése
+        felületről
+        kijelentkezés
+        '''
