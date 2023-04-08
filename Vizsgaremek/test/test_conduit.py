@@ -177,6 +177,7 @@ class TestConduit(object):
         delete_article.click()
         sleep(2)
         assert self.browser.find_elements(By.CSS_SELECTOR, f'a[href="#/tag/tag edit"]') == []
+        sleep(2)
 
     # az előzővel egyező modified{unique}-re keresve'''
 
