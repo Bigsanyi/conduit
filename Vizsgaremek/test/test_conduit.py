@@ -5,7 +5,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
@@ -28,7 +27,6 @@ class TestConduit(object):
         URL = 'http://localhost:1667/'
         self.browser.get(URL)
         self.browser.maximize_window()
-        print(self.unique)
         sleep(2)
         # wait = WebDriverWait(self.browser, 5).until(self.browser.title == 'Conduit')
 
@@ -177,71 +175,90 @@ class TestConduit(object):
         delete_article.click()
         sleep(2)
         assert self.browser.find_elements(By.CSS_SELECTOR, f'a[href="#/tag/tag edit"]') == []
+
+    def test_data_source(self):
+        # TC7 Ismételt és sorozatos adatbevitel adatforrásból -Új posztok létrehozása-
+        self.test_login()
+
+        with open('forras.csv', 'r', encoding='utf-8') as forras:
+            forras_reader = csv.reader(forras, delimiter=',')
+
+            for forras in forras_reader:
+                new_article = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/editor"]')
+                new_article.click()
+                article_title = WebDriverWait(self.browser, 5).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'form-control-lg')))
+                about = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="What\'s this article about?"]')
+                write = self.browser.find_element(By.CSS_SELECTOR,
+                                                  'textarea[placeholder="Write your article (in markdown)"]')
+                tag = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Enter tags"]')
+                publish = self.browser.find_element(By.CLASS_NAME, 'btn-primary')
+                new_article.click()
+                sleep(1)
+                article_title.send_keys(forras[0])
+                about.send_keys(forras[1])
+                write.send_keys(forras[2])
+                tag.send_keys(forras[3])
+                sleep(1)
+                publish.click()
+                sleep(2)
+                published = WebDriverWait(self.browser, 5).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'h1'))).text
+                assert published == forras[0]
+                home = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/"]')
+                home.click()
+                sleep(1)
+                article_published = WebDriverWait(self.browser, 5).until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, f'a[href="#/articles/{"-".join(forras[0].split())}"]')))
+                assert article_published.is_displayed()
+
+    def test_pages_list(self):
+        # TC8 Több oldalas lista bejárása -Létrehozott oldalak végigjárása-
+        self.test_login()
+        pages = self.browser.find_elements(By.CSS_SELECTOR, 'ul.pagination li a')
+        for num, i in enumerate(pages):
+            i.click()
+            assert i.text == str(num + 1)
+            sleep(2)
+        assert str(len(pages)) == i.text
+
+    def test_data_save_txt(self):
+        # TC9 Adatok lementése felületről -TestUser által létrehozott címek txt-be mentve-
+        self.test_login()
+        user = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
+        user.click()
         sleep(2)
+        posztok = self.browser.find_elements(By.CSS_SELECTOR, 'a p')
+        posztok = [i.text for i in posztok]
 
-    # az előzővel egyező modified{unique}-re keresve'''
+        with open('kerdesek.txt', 'w', encoding='UTF-8') as poszt_file:
+            for i in posztok:
+                poszt_file.write(i + '\n')
 
-    def data_source(self):
-        pass
+        with open('kerdesek.txt', 'r', encoding='UTF-8') as poszt_read:
+            assert len(list(poszt_read)) == len(posztok)
 
-    # TC7 Ismételt és sorozatos adatbevitel adatforrásból -Új posztok létrehozása-
-    '''
-    with open('room.csv', 'r') as rooms:
-    room_reader = csv.reader(rooms, delimiter=',')
-    next(room_reader)
-    for room in room_reader:
-    new_room_btn = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//button[@class="btn btn-primary btn-lg btn-block"]')))
-    new_room_btn.click()
-    room_name_input = browser.find_element(By.ID, 'roomName')
-    room_type = Select(browser.find_element(By.ID, 'roomType'))
-    bed_nr = browser.find_element(By.ID, 'numberOfBeds')
-    room_area = browser.find_element(By.ID, 'roomArea')
-    price = browser.find_element(By.ID, 'pricePerNight')
-    description = browser.find_element(By.ID, 'description')
-    save_btn = browser.find_element(By.XPATH, '//button[@class="btn btn-primary my-buttons"]')
-    
-    room_name_input.send_keys(room[0])
-    room_type.select_by_value(room[1])
-    bed_nr.send_keys(room[2])
-    room_area.send_keys(room[3])
-    price.send_keys(room[4])
-    description.send_keys(room[5])
-    
-    save_btn.click()
-    
-    
-        with open("deltee.txt", "w", encoding='utf-8') as file:
-    file.write(str(tag_published))
-    sleep(.5)
-    TC1
-    adatkezelési
-    nyilatkozat
-    használata
-    adatok
-    listázása
-    több
-    oldalas
-    lista
-    bejárása
-    TC3
-    új
-    adat
-    bevitele
-    ismételt
-    és
-    sorozatos
-    adatbevitel
-    adatforrásból
-    TC4
-    meglévő
-    adat
-    módosítása
-    adat
-    vagy
-    adatok
-    törlése
-    adatok
-    lementése
-    felületről
-    kijelentkezés
-    '''
+    def test_data_list(self):
+        # TC10 Adatok listázása -TestUser posztjaira szűrve nem jelenik meg másik felhasználó cikke-
+        self.test_login()
+        user = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
+        user.click()
+        sleep(2)
+        writer = self.browser.find_elements(By.CSS_SELECTOR, 'div.info a[aria-current="page"]')
+        writer = [i.text for i in writer]
+
+        for i in writer:
+            assert i == "TesztUser"
+
+    def test_log_out(self):
+        # TC11 Kijelentkezés -TestUser kilép-
+        self.test_login()
+        sleep(1)
+        log_out = self.browser.find_element(By.CSS_SELECTOR, 'i.ion-android-exit')
+        log_out.click()
+        sleep(1)
+        sign_in = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/login"]')
+        assert sign_in.is_displayed()
