@@ -180,7 +180,7 @@ class TestConduit(object):
         # TC7 Ismételt és sorozatos adatbevitel adatforrásból -Új posztok létrehozása-
         self.test_login()
 
-        with open('forras.csv', 'r', encoding='utf-8') as forras:
+        with open('/forras.csv', 'r', encoding='utf-8') as forras:
             forras_reader = csv.reader(forras, delimiter=',')
 
             for forras in forras_reader:
