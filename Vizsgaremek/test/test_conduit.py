@@ -19,9 +19,9 @@ class TestConduit(object):
         options = Options()
         options.add_experimental_option("detach", True)
 
-        options.add_argument('--headless')
+        '''options.add_argument('--headless')
         options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-dev-shm-usage')'''
 
         self.browser = webdriver.Chrome(service=service, options=options)
         URL = 'http://localhost:1667/'
@@ -180,7 +180,7 @@ class TestConduit(object):
         # TC7 Ismételt és sorozatos adatbevitel adatforrásból -Új posztok létrehozása-
         self.test_login()
 
-        with open('/forras.csv', 'r', encoding='utf-8') as forras:
+        with open('/vizsgaremek/test/forras.csv', 'r', encoding='utf-8') as forras:
             forras_reader = csv.reader(forras, delimiter=',')
 
             for forras in forras_reader:
