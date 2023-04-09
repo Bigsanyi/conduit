@@ -88,7 +88,7 @@ class TestConduit(object):
         email.send_keys("teszt@vizsga.hu")
         password.send_keys('Abcd1234')
         sign_in_button.click()
-        sleep(2)
+        sleep(1)
         assert self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/@TesztUser/"]').text == "TesztUser"
 
     def test_new_post(self):
