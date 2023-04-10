@@ -1,5 +1,4 @@
 import csv
-from time import sleep
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -8,8 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
-from datetime import datetime, date, time, timezone
-
+from datetime import datetime
 
 class TestConduit(object):
     unique = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -28,7 +26,6 @@ class TestConduit(object):
         self.browser.get(URL)
         self.browser.maximize_window()
         wait = WebDriverWait(self.browser, 5).until(EC.title_is('Conduit'))
-
 
     def teardown_method(self):
         self.browser.quit()
@@ -86,8 +83,9 @@ class TestConduit(object):
         email.send_keys("teszt@vizsga.hu")
         password.send_keys('Abcd1234')
         sign_in_button.click()
-        sleep(1)
-        assert self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/@TesztUser/"]').text == "TesztUser"
+        profile = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/@TesztUser/"]')))
+        assert profile.text == "TesztUser"
 
     def test_new_post(self):
         # TC4 Új adat bevitele -Új poszt készítése-
@@ -104,7 +102,6 @@ class TestConduit(object):
         about.send_keys(f'about{self.unique}')
         write.send_keys(f'write{self.unique}')
         tag.send_keys(f'tag{self.unique}')
-        sleep(2)
         assert article_title.get_attribute("value") == f'article{self.unique}'
         assert about.get_attribute("value") == f'about{self.unique}'
         assert write.get_attribute("value") == f'write{self.unique}'
@@ -113,10 +110,10 @@ class TestConduit(object):
         published = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h1'))).text
         assert published == f'article{self.unique}'
-        sleep(2)
         home = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/"]')
         home.click()
-        sleep(1)
+        main = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'ion-heart')))
         tag_published = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, f'a[href="#/tag/tag{self.unique}"]')))
         assert tag_published.is_displayed()
@@ -127,13 +124,13 @@ class TestConduit(object):
         user = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
         user.click()
-        sleep(2)
+        username_h4 = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
         post = self.browser.find_element(By.CSS_SELECTOR, f'a[href="#/articles/article{self.unique}"]')
         post.click()
         edit_article = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'ion-edit')))
         edit_article.click()
-
         article_title = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'form-control-lg')))
         about = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="What\'s this article about?"]')
@@ -147,17 +144,14 @@ class TestConduit(object):
         about.send_keys("about edit")
         write.send_keys("write edit")
         tag.send_keys("tag edit")
-        sleep(2)
         assert article_title.get_attribute("value") == "article edit"
-
         publish.click()
         published = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h1'))).text
         assert published == "article edit"
-        sleep(2)
-        home = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/"]')
+        home = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/"]')))
         home.click()
-        sleep(1)
 
     def test_delete_post(self):
         # TC6 Meglévő adat törlése -Korábbi poszt törlése-
@@ -165,20 +159,26 @@ class TestConduit(object):
         user = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
         user.click()
-        sleep(2)
+        username_h4 = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
         post = self.browser.find_element(By.CSS_SELECTOR, f'a[href="#/articles/article{self.unique}"]')
         post.click()
         delete_article = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'ion-trash-a')))
         delete_article.click()
-        sleep(2)
+        main = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'ion-heart')))
+
         assert self.browser.find_elements(By.CSS_SELECTOR, f'a[href="#/tag/tag edit"]') == []
 
     def test_data_source(self):
         # TC7 Ismételt és sorozatos adatbevitel adatforrásból -Új posztok létrehozása-
         self.test_login()
 
-        with open('/vizsgaremek/test/forras.csv', 'r', encoding='utf-8') as forras:
+        '''with open('/vizsgaremek/test/forras.csv', 'r', encoding='utf-8') as forras:
+            forras_reader = csv.reader(forras, delimiter=',')'''
+
+        with open('Vizsgaremek/test/forras.csv', 'r', encoding='utf-8') as forras:
             forras_reader = csv.reader(forras, delimiter=',')
 
             for forras in forras_reader:
@@ -191,21 +191,16 @@ class TestConduit(object):
                                                   'textarea[placeholder="Write your article (in markdown)"]')
                 tag = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Enter tags"]')
                 publish = self.browser.find_element(By.CLASS_NAME, 'btn-primary')
-                new_article.click()
-                sleep(1)
                 article_title.send_keys(forras[0])
                 about.send_keys(forras[1])
                 write.send_keys(forras[2])
                 tag.send_keys(forras[3])
-                sleep(1)
                 publish.click()
-                sleep(2)
                 published = WebDriverWait(self.browser, 5).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, 'h1'))).text
                 assert published == forras[0]
                 home = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/"]')
                 home.click()
-                sleep(1)
                 article_published = WebDriverWait(self.browser, 5).until(
                     EC.presence_of_element_located(
                         (By.CSS_SELECTOR, f'a[href="#/articles/{"-".join(forras[0].split())}"]')))
@@ -218,7 +213,6 @@ class TestConduit(object):
         for num, i in enumerate(pages):
             i.click()
             assert i.text == str(num + 1)
-            sleep(2)
         assert str(len(pages)) == i.text
 
     def test_data_save_txt(self):
@@ -227,7 +221,8 @@ class TestConduit(object):
         user = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
         user.click()
-        sleep(2)
+        username_h4 = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
         posztok = self.browser.find_elements(By.CSS_SELECTOR, 'a p')
         posztok = [i.text for i in posztok]
 
@@ -244,7 +239,8 @@ class TestConduit(object):
         user = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
         user.click()
-        sleep(2)
+        username_h4 = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
         writer = self.browser.find_elements(By.CSS_SELECTOR, 'div.info a[aria-current="page"]')
         writer = [i.text for i in writer]
 
@@ -254,9 +250,8 @@ class TestConduit(object):
     def test_log_out(self):
         # TC11 Kijelentkezés -TestUser kilép-
         self.test_login()
-        sleep(1)
         log_out = self.browser.find_element(By.CSS_SELECTOR, 'i.ion-android-exit')
         log_out.click()
-        sleep(1)
-        sign_in = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/login"]')
+        sign_in = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/login"]')))
         assert sign_in.is_displayed()
