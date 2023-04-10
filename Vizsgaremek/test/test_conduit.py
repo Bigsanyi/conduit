@@ -27,21 +27,19 @@ class TestConduit(object):
         URL = 'http://localhost:1667/'
         self.browser.get(URL)
         self.browser.maximize_window()
-        sleep(2)
-        # wait = WebDriverWait(self.browser, 5).until(self.browser.title == 'Conduit')
+        wait = WebDriverWait(self.browser, 5).until(EC.title_is('Conduit'))
+
 
     def teardown_method(self):
         self.browser.quit()
 
     def test_statement(self):
-        # TC1 Az adatkezelési nyilatkozat használata
+        # TC1 Az adatkezelési nyilatkozat használata -A tájékoztatás elutasítása-
         decline = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__buttons__button--decline')))
         decline.click()
         assert self.browser.current_url == 'http://localhost:1667/#/'
-        sleep(1)
         assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
-        sleep(2)
 
     def test_registry(self):
         # Regisztrációs felület használata
@@ -57,10 +55,10 @@ class TestConduit(object):
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
         sign_up_btn = self.browser.find_element(By.CSS_SELECTOR, 'button')
 
-        '''username.send_keys(f"TesztUser{self.unique}")
+        username.send_keys(f"TesztUser{self.unique}")
         email.send_keys(f"teszt@{self.unique}.hu")
         password.send_keys('Abcd1234')
-        sign_up_btn.click()'''
+        sign_up_btn.click()
 
         username.send_keys("TesztUser")
         email.send_keys("teszt@vizsga.hu")
