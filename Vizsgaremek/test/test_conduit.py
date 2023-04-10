@@ -55,10 +55,10 @@ class TestConduit(object):
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
         sign_up_btn = self.browser.find_element(By.CSS_SELECTOR, 'button')
 
-        username.send_keys(f"TesztUser{self.unique}")
+        '''username.send_keys(f"TesztUser{self.unique}")
         email.send_keys(f"teszt@{self.unique}.hu")
         password.send_keys('Abcd1234')
-        sign_up_btn.click()
+        sign_up_btn.click()'''
 
         username.send_keys("TesztUser")
         email.send_keys("teszt@vizsga.hu")
