@@ -210,19 +210,26 @@ class TestConduit(object):
         # TC8 Több oldalas lista bejárása -Létrehozott oldalak végigjárása-
         self.test_login()
         pages = self.browser.find_elements(By.CSS_SELECTOR, 'ul.pagination li a')
+        last = None
         for num, i in enumerate(pages):
             i.click()
             assert i.text == str(num + 1)
-        assert str(len(pages)) == i.text
+            last = i
+        assert str(len(pages)) == last.text
 
     def test_data_save_txt(self):
         # TC9 Adatok lementése felületről -TestUser által létrehozott címek txt-be mentve-
         self.test_login()
         user = WebDriverWait(self.browser, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"]')))
         user.click()
         username_h4 = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
+        #Mivel a Conduit oldal betöltésekor egy pillanatra felvillantja az összes felhasználó posztját, ezért vizsgálni szükséges, hogy csak a TesztUser posztjai láthatóak
+        while True:
+            element = [i.text for i in self.browser.find_elements(By.CSS_SELECTOR, 'div.info a')]
+            if len(list(set(element))) == 1:
+                break
         posztok = self.browser.find_elements(By.CSS_SELECTOR, 'a p')
         posztok = [i.text for i in posztok]
 
