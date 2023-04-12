@@ -1,4 +1,6 @@
 import csv
+import time
+import allure
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -8,6 +10,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime
+
 
 class TestConduit(object):
     unique = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -30,16 +33,19 @@ class TestConduit(object):
     def teardown_method(self):
         self.browser.quit()
 
+    @allure.id('TC01')
+    @allure.title('Az adatkezelési nyilatkozat használata -A tájékoztatás elutasítása-')
     def test_statement(self):
-        # TC1 Az adatkezelési nyilatkozat használata -A tájékoztatás elutasítása-
         decline = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__buttons__button--decline')))
         decline.click()
         assert self.browser.current_url == 'http://localhost:1667/#/'
         assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
 
+    @allure.id('TC02')
+    @allure.title('Regisztrációs felület használata')
     def test_registry(self):
-        # Regisztrációs felület használata
+
         sign_up = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/register"]')))
         assert self.browser.title == 'Conduit'
@@ -52,23 +58,24 @@ class TestConduit(object):
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
         sign_up_btn = self.browser.find_element(By.CSS_SELECTOR, 'button')
 
-        '''username.send_keys(f"TesztUser{self.unique}")
+        username.send_keys(f"TesztUser{self.unique}")
         email.send_keys(f"teszt@{self.unique}.hu")
-        password.send_keys('Abcd1234')
-        sign_up_btn.click()'''
-
-        username.send_keys("TesztUser")
-        email.send_keys("teszt@vizsga.hu")
         password.send_keys('Abcd1234')
         sign_up_btn.click()
 
-        ok_btn = WebDriverWait(self.browser, 5).until(
+        '''username.send_keys("TesztUser")
+        email.send_keys("teszt@vizsga.hu")
+        password.send_keys('Abcd1234')
+        sign_up_btn.click()'''
+
+        ok_btn = WebDriverWait(self.browser, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'swal-button--confirm')))
         assert self.browser.find_element(By.CLASS_NAME, 'swal-title').text == "Welcome!"
         ok_btn.click()
 
+    @allure.id('TC03')
+    @allure.title('A bejelentkezési felület használata, korábban regisztrált felhasználóval')
     def test_login(self):
-        # TC3 A bejelentkezési felület használata, korábban regisztrált felhasználóval
         sign_in = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/login"]')
         assert self.browser.title == 'Conduit'
 
@@ -87,8 +94,9 @@ class TestConduit(object):
             EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/@TesztUser/"]')))
         assert profile.text == "TesztUser"
 
+    @allure.id('TC04')
+    @allure.title('Új adat bevitele -Új poszt készítése-')
     def test_new_post(self):
-        # TC4 Új adat bevitele -Új poszt készítése-
         self.test_login()
         new_article = self.browser.find_element(By.CSS_SELECTOR, 'a[href="#/editor"]')
         new_article.click()
@@ -118,8 +126,9 @@ class TestConduit(object):
             EC.presence_of_element_located((By.CSS_SELECTOR, f'a[href="#/tag/tag{self.unique}"]')))
         assert tag_published.is_displayed()
 
+    @allure.id('TC05')
+    @allure.title('Meglévő adat módosítása -Korábbi poszt módosítása-')
     def test_edit_post(self):
-        # TC5 Meglévő adat módosítása -Korábbi poszt módosítása-
         self.test_login()
         user = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
@@ -153,15 +162,18 @@ class TestConduit(object):
             EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/"]')))
         home.click()
 
+    @allure.id('TC06')
+    @allure.title('Meglévő adat törlése -Korábbi poszt törlése-')
     def test_delete_post(self):
-        # TC6 Meglévő adat törlése -Korábbi poszt törlése-
         self.test_login()
         user = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
         user.click()
+        time.sleep(2)
         username_h4 = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
-        post = self.browser.find_element(By.CSS_SELECTOR, f'a[href="#/articles/article{self.unique}"]')
+        post = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, f'a[href="#/articles/article{self.unique}"]')))
         post.click()
         delete_article = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'ion-trash-a')))
@@ -171,12 +183,10 @@ class TestConduit(object):
 
         assert self.browser.find_elements(By.CSS_SELECTOR, f'a[href="#/tag/tag edit"]') == []
 
+    @allure.id('TC07')
+    @allure.title('Ismételt és sorozatos adatbevitel adatforrásból -Új posztok létrehozása-')
     def test_data_source(self):
-        # TC7 Ismételt és sorozatos adatbevitel adatforrásból -Új posztok létrehozása-
         self.test_login()
-
-        '''with open('/vizsgaremek/test/forras.csv', 'r', encoding='utf-8') as forras:
-            forras_reader = csv.reader(forras, delimiter=',')'''
 
         with open('Vizsgaremek/test/forras.csv', 'r', encoding='utf-8') as forras:
             forras_reader = csv.reader(forras, delimiter=',')
@@ -206,10 +216,12 @@ class TestConduit(object):
                         (By.CSS_SELECTOR, f'a[href="#/articles/{"-".join(forras[0].split())}"]')))
                 assert article_published.is_displayed()
 
+    @allure.id('TC08')
+    @allure.title('Több oldalas lista bejárása -Létrehozott oldalak végigjárása-')
     def test_pages_list(self):
-        # TC8 Több oldalas lista bejárása -Létrehozott oldalak végigjárása-
         self.test_login()
-        pages = self.browser.find_elements(By.CSS_SELECTOR, 'ul.pagination li a')
+        pages = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'ul.pagination li a')))
         last = None
         for num, i in enumerate(pages):
             i.click()
@@ -217,6 +229,8 @@ class TestConduit(object):
             last = i
         assert str(len(pages)) == last.text
 
+    @allure.id('TC09')
+    @allure.title('Adatok lementése felületről -TestUser által létrehozott címek txt-be mentve-')
     def test_data_save_txt(self):
         # TC9 Adatok lementése felületről -TestUser által létrehozott címek txt-be mentve-
         self.test_login()
@@ -225,11 +239,7 @@ class TestConduit(object):
         user.click()
         username_h4 = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
-        #Mivel a Conduit oldal betöltésekor egy pillanatra felvillantja az összes felhasználó posztját, ezért vizsgálni szükséges, hogy csak a TesztUser posztjai láthatóak
-        while True:
-            element = [i.text for i in self.browser.find_elements(By.CSS_SELECTOR, 'div.info a')]
-            if len(list(set(element))) == 1:
-                break
+        time.sleep(2)
         posztok = self.browser.find_elements(By.CSS_SELECTOR, 'a p')
         posztok = [i.text for i in posztok]
 
@@ -240,22 +250,25 @@ class TestConduit(object):
         with open('kerdesek.txt', 'r', encoding='UTF-8') as poszt_read:
             assert len(list(poszt_read)) == len(posztok)
 
+    @allure.id('TC10')
+    @allure.title('Adatok listázása -TestUser posztjaira szűrve nem jelenik meg másik felhasználó cikke-')
     def test_data_list(self):
-        # TC10 Adatok listázása -TestUser posztjaira szűrve nem jelenik meg másik felhasználó cikke-
         self.test_login()
         user = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'ul li a[href="#/@TesztUser/"')))
         user.click()
         username_h4 = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
+        time.sleep(2)
         writer = self.browser.find_elements(By.CSS_SELECTOR, 'div.info a[aria-current="page"]')
         writer = [i.text for i in writer]
 
         for i in writer:
             assert i == "TesztUser"
 
+    @allure.id('TC11')
+    @allure.title('Kijelentkezés -TestUser kilép-')
     def test_log_out(self):
-        # TC11 Kijelentkezés -TestUser kilép-
         self.test_login()
         log_out = self.browser.find_element(By.CSS_SELECTOR, 'i.ion-android-exit')
         log_out.click()
