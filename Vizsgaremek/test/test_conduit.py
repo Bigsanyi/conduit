@@ -135,6 +135,7 @@ class TestConduit(object):
         user.click()
         username_h4 = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h4')))
+        time.sleep(2)
         post = self.browser.find_element(By.CSS_SELECTOR, f'a[href="#/articles/article{self.unique}"]')
         post.click()
         edit_article = WebDriverWait(self.browser, 5).until(
@@ -158,9 +159,6 @@ class TestConduit(object):
         published = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'h1'))).text
         assert published == "article edit"
-        home = WebDriverWait(self.browser, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/"]')))
-        home.click()
 
     @allure.id('TC06')
     @allure.title('Meglévő adat törlése -Korábbi poszt törlése-')
