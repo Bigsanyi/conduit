@@ -6,7 +6,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime
@@ -14,6 +13,9 @@ from datetime import datetime
 
 class TestConduit(object):
     unique = datetime.now().strftime("%Y%m%d%H%M%S")
+    user1 = "TesztUser"
+    email1 = "teszt@vizsga.com"
+    password1 = "Abcd1234"
 
     def setup_method(self):
         service = Service(executable_path=ChromeDriverManager().install())
@@ -37,7 +39,7 @@ class TestConduit(object):
     @allure.title('Az adatkezelési nyilatkozat használata -A tájékoztatás elutasítása-')
     def test_statement(self):
         decline = WebDriverWait(self.browser, 5).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__buttons__button--decline')))
+            EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__but tons__button--decline')))
         decline.click()
         assert self.browser.current_url == 'http://localhost:1667/#/'
         assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
@@ -58,14 +60,9 @@ class TestConduit(object):
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
         sign_up_btn = self.browser.find_element(By.CSS_SELECTOR, 'button')
 
-        '''username.send_keys(f"TesztUser{self.unique}")
-        email.send_keys(f"teszt@{self.unique}.hu")
-        password.send_keys('Abcd1234')
-        sign_up_btn.click()'''
-
-        username.send_keys("TesztUser")
-        email.send_keys("teszt@vizsga.hu")
-        password.send_keys('Abcd1234')
+        username.send_keys(self.user1)
+        email.send_keys(self.email1)
+        password.send_keys(self.password1)
         sign_up_btn.click()
 
         ok_btn = WebDriverWait(self.browser, 10).until(
@@ -87,8 +84,8 @@ class TestConduit(object):
         email = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Email"]')
         password = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]')
 
-        email.send_keys("teszt@vizsga.hu")
-        password.send_keys('Abcd1234')
+        email.send_keys(self.email1)
+        password.send_keys(self.password1)
         sign_in_button.click()
         profile = WebDriverWait(self.browser, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#/@TesztUser/"]')))
@@ -147,13 +144,15 @@ class TestConduit(object):
         write = self.browser.find_element(By.CSS_SELECTOR, 'textarea[placeholder="Write your article (in markdown)"]')
         tag = self.browser.find_element(By.CSS_SELECTOR, 'input[placeholder="Enter tags"]')
         publish = self.browser.find_element(By.CLASS_NAME, 'btn-primary')
-        for i in [article_title, about, write]:
-            while i.get_attribute("value") != "":
-                i.send_keys(Keys.BACKSPACE)
+        article_title.clear()
+        about.clear()
+        write.clear()
+        tag.clear()
         article_title.send_keys("article edit")
         about.send_keys("about edit")
         write.send_keys("write edit")
         tag.send_keys("tag edit")
+        time.sleep(2)
         assert article_title.get_attribute("value") == "article edit"
         publish.click()
         published = WebDriverWait(self.browser, 5).until(
@@ -249,7 +248,7 @@ class TestConduit(object):
             assert len(list(poszt_read)) == len(posztok)
 
     @allure.id('TC10')
-    @allure.title('Adatok listázása -TestUser posztjaira szűrve nem jelenik meg másik felhasználó cikke-')
+    @allure.title('Adatok listázása -TesztUser posztjaira szűrve nem jelenik meg másik felhasználó cikke-')
     def test_data_list(self):
         self.test_login()
         user = WebDriverWait(self.browser, 5).until(
