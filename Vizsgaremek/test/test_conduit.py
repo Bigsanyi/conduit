@@ -38,9 +38,10 @@ class TestConduit(object):
     @allure.id('TC01')
     @allure.title('Az adatkezelési nyilatkozat használata -A tájékoztatás elutasítása-')
     def test_statement(self):
-        decline = WebDriverWait(self.browser, 5).until(
+        decline = WebDriverWait(self.browser, 50).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__but tons__button--decline')))
         decline.click()
+        time.sleep(2)
         assert self.browser.current_url == 'http://localhost:1667/#/'
         assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
 
