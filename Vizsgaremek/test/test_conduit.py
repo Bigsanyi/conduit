@@ -41,7 +41,7 @@ class TestConduit(object):
         time.sleep(2)
         assert self.browser.current_url == 'http://localhost:1667/#/'
         decline = WebDriverWait(self.browser, 5).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__but tons__button--decline')))
+            EC.presence_of_element_located((By.CLASS_NAME, 'cookie__bar__buttons__button--decline')))
         decline.click()
         time.sleep(2)
         assert self.browser.find_elements(By.CLASS_NAME, 'cookie__bar__buttons__button--decline') == []
